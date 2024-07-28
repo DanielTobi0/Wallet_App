@@ -1,14 +1,15 @@
 from datetime import datetime
+from dataclasses import dataclass, field
 
 
+@dataclass
 class Transaction:
-    def __init__(self, transaction_id, created_at, sender, receiver, amount, transaction_type):
-        self.transaction_id = transaction_id
-        self.created_at = created_at
-        self.sender = sender
-        self.receiver = receiver
-        self.amount = amount
-        self.transaction_type = transaction_type
+    transaction_id: str
+    created_at: str
+    sender: str
+    receiver: str
+    amount: float
+    transaction_type: str
 
     def to_dict(self):
         return {
@@ -21,14 +22,14 @@ class Transaction:
         }
 
 
+@dataclass
 class User:
-    def __init__(self, name, email, phone, username, password, created_at):
-        self.name = name
-        self.email = email
-        self.phone = phone
-        self.username = username
-        self.password = password
-        self.created_at = created_at
+    name: str
+    email: str
+    phone: str
+    username: str
+    password: str
+    created_at: str
 
     def to_dict(self):
         return {
@@ -41,13 +42,13 @@ class User:
         }
 
 
+@dataclass
 class Wallet:
-    def __init__(self, wallet_id, balance, username, **kwargs):
-        self.wallet_id = wallet_id
-        self.balance: float = balance
-        self.username = username
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
+    wallet_id: str
+    balance: float
+    username: str
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
     def to_dict(self):
         return {

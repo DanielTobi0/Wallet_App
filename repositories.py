@@ -89,9 +89,9 @@ class WalletFileRepository:
 
     @classmethod
     def create(cls):
-        wallet_id = len(cls.wallets)
+        wallet_id = str(len(cls.wallets))
         balance = int(0)
-        username = None
+        username = str(None)
         return Wallet(wallet_id, balance, username)
 
     @classmethod

@@ -14,20 +14,6 @@ class WalletUtils:
         pass
 
 
-'''def load_data(path, model):
-    try:
-        data_open = open(path, 'r')
-        data_dicts = json.load(data_open)
-        if len(data_dicts) < 1:
-            return []
-        else:
-            return [model(**data_dict) for data_dict in data_dicts]
-    except FileNotFoundError:
-        print(f'{model} DB not found, creating one now')
-        open(f"{path}, 'x'").close()
-    except json.decoder.JSONDecodeError:
-        print(f'{model} DB is empty to corrupted')
-        return []'''
 def load_data(path, model):
     try:
         with open(path, 'r') as data_file:

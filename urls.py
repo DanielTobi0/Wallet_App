@@ -15,4 +15,4 @@ def get_path():
         "wallet_profile": WalletView.profile,
         "transaction": TransactionView.handle_get_transaction,
         "single_transaction": TransactionView.handle_single_transaction,
-    }
+        }
