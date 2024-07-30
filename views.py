@@ -1,14 +1,22 @@
+from datetime import datetime
+import random
+
 from repositories import UserFileRepository, WalletFileRepository, TransactionFileRepository
-from helpers import load_data
-from models import Wallet, User
-from utils import users_db_path, wallets_db_path
 
 
 class UserView:
 
     @staticmethod
     def signup():
-        UserFileRepository.create()
+        name = input('Enter your name: ')
+        email = input('Enter your email: ')
+        phone = str(input('Enter your phone number: '))
+        username = input('Enter your username: ')
+        password = str(input('Enter your password: '))
+        wallet_id = str(random.randint(1, 1000000))
+        created_at = str(datetime.now().isoformat())
+
+        UserFileRepository.create(name, email, phone, username, password, wallet_id, created_at)
         WalletFileRepository.create()
 
     @staticmethod
@@ -36,17 +44,17 @@ class UserView:
             elif user_input == '2':
                 WalletView.withdraw_(username)
             elif user_input == '3':
-                WalletFileRepository.send_money(source=username)
+                WalletView.send_money_(source=username)
             elif user_input == '4':
-                WalletFileRepository.check_balance(username)
+                WalletView.check_balance_(username)
             elif user_input == '5':
                 TransactionView.handle_get_transaction(username)
             elif user_input == '6':
-                WalletView.profile(username)
+                WalletView.profile_(username)
             elif user_input == '7':
                 UserView.profile(username)
             elif user_input == '8':
-                TransactionView.handle_single_transaction()
+                TransactionView.get_single_transaction_id_by_username_()
             elif user_input == '9':
                 state['signin_app_active'] = False
             else:
@@ -58,19 +66,16 @@ class UserView:
 
     @classmethod
     def profile(cls, username):
-        users = load_data(users_db_path, User)
-        wallets = load_data(wallets_db_path, Wallet)
-        for idx, user in enumerate(users):
-            if user.username == username:
-                print(users[idx].to_dict())
-                print(wallets[idx].to_dict())
+        WalletFileRepository.profile(username)
 
 
 class WalletView:
+    wallet = str
 
     @staticmethod
     def deposit_(username):
-        result = WalletFileRepository.deposit(username=username)
+        amount = input('Enter amount to deposit: ')
+        result = WalletFileRepository.deposit(username=username, amount=amount)
         if result:
             return 'Deposit successful'
         else:
@@ -78,20 +83,22 @@ class WalletView:
 
     @staticmethod
     def withdraw_(username):
-        WalletFileRepository.withdrawal(username)
+        amount = input('Enter amount to withdraw: ')
+        WalletFileRepository.withdrawal(username, amount)
 
     @staticmethod
-    def check_balance(username):
-        for user in load_data(wallets_db_path, Wallet):
-            if user.username == username:
-                return user.balance
+    def send_money_(source):
+        recipient = str(input('Enter recipient username: '))
+        amount = input('Enter amount to send: ')
+        WalletFileRepository.send_money(source, amount, recipient)
 
     @staticmethod
-    def profile(username):
-        wallets = load_data(wallets_db_path, Wallet)
-        for idx, user in enumerate(wallets):
-            if user.username == username:
-                print(wallets[idx].to_dict())
+    def check_balance_(username):
+        WalletFileRepository.check_balance(username)
+
+    @staticmethod
+    def profile_(username):
+        WalletFileRepository.profile(username)
 
 
 class TransactionView:
@@ -101,5 +108,6 @@ class TransactionView:
         return TransactionFileRepository.get_user_transaction_id_by_username(username)
 
     @staticmethod
-    def handle_single_transaction():
-        return TransactionFileRepository.get_single_transaction_id_by_username()
+    def get_single_transaction_id_by_username_():
+        transaction_id = input('Enter transaction id: ')
+        TransactionFileRepository.get_single_transaction_id_by_username(transaction_id)

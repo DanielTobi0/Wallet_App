@@ -1,4 +1,3 @@
-import random
 from datetime import datetime
 
 from helpers import load_data, write_to_db
@@ -11,26 +10,10 @@ class UserFileRepository:
     wallets = load_data(wallets_db_path, Wallet)
 
     @classmethod
-    def create(cls):
-        """
-        This function creates a new user.
-        Wallet id is automatically generated.
-        The username connects the user and wallet database.
-
-        :return: newly created user in dict
-        """
-        name = input('Enter your name: ')
-        email = input('Enter your email: ')
-        phone = str(input('Enter your phone number: '))
-        while True:
-            username = input('Enter your username: ')
-            if any(user.username == username for user in cls.users):
-                print(f'Username "{username}" is already taken. Please choose a different username.')
-            else:
-                break
-        password = str(input('Enter your password: '))
-        wallet_id = str(random.randint(1, 1000000))
-        created_at = str(datetime.now().isoformat())
+    def create(cls, name, email, phone, username, password, wallet_id, created_at):
+        if any(user.username == username for user in cls.users):
+            print(f'Username "{username}" is already taken. Please choose a different username.')
+            return
 
         # User info save to db
         new_user = User(name, email, phone, username, password, created_at)
@@ -57,18 +40,8 @@ class UserFileRepository:
         write_to_db(wallets_db_path, cls.wallets)
         print(f'\n*********************{username} profile deleted from db.*********************\n')
 
-        '''for idx, user_data in enumerate(cls.users):
-            if user_data.username == username:
-                del cls.users[idx]
-                del cls.wallets[idx]
-                write_to_db(users_db_path, cls.users)
-                write_to_db(wallets_db_path, cls.wallets)
-                print(f'\n*********************{username} profile deleted from db.*********************\n')
-        '''
-
     @classmethod
-    def get_user_by_username(cls):
-        username = input('Enter username to get: ')
+    def get_user_by_username(cls, username):
         for user_data in cls.users:
             if user_data.username == username:
                 return user_data.to_dict()
@@ -82,6 +55,15 @@ class UserFileRepository:
                 return True, user_data.username, cls.wallets[idx - 1].wallet_id
         print('\n*********************Login failed*********************\n')
         return False, None, None
+
+    @classmethod
+    def profile(cls, username):
+        users = load_data(users_db_path, User)
+        wallets = load_data(wallets_db_path, Wallet)
+        for idx, user in enumerate(users):
+            if user.username == username:
+                print(users[idx].to_dict())
+                print(wallets[idx].to_dict())
 
 
 class WalletFileRepository:
@@ -102,8 +84,7 @@ class WalletFileRepository:
         return None
 
     @classmethod
-    def deposit(cls, username):
-        amount = input('Enter amount to deposit: ')
+    def deposit(cls, username, amount):
         try:
             amount = float(amount)
         except ValueError:
@@ -118,8 +99,7 @@ class WalletFileRepository:
         print(f'Successfully deposited {amount} into your account.\n')
 
     @classmethod
-    def withdrawal(cls, username):
-        amount = input('Enter amount to withdraw: ')
+    def withdrawal(cls, username, amount):
         try:
             amount = float(amount)
         except ValueError:
@@ -138,15 +118,12 @@ class WalletFileRepository:
                 return
 
     @classmethod
-    def send_money(cls, source):
-        amount = input('Enter amount to send: ')
+    def send_money(cls, source, amount, recipient):
         try:
             amount = float(amount)
         except ValueError:
             print('enter amount in numbers')
             return
-
-        recipient = str(input('Enter recipient username: '))
 
         if source == recipient:
             print('Cannot send money to yourself.')
@@ -184,14 +161,21 @@ class WalletFileRepository:
         write_to_db(wallets_db_path, cls.wallets)
         TransactionFileRepository.create(source, amount, 'debit', recipient)
         print(f'#{amount} sent from {source} to {recipient}.')
-        # print(f'{source} new balance: ${source_wallet.balance}')
-        # print(f'{recipient} new balance: ${recipient_wallet.balance}')
+        # print(f'{source} new balance: {source_wallet.balance}')
+        # print(f'{recipient} new balance: {recipient_wallet.balance}')
 
     @classmethod
     def check_balance(cls, username):
         for idx, wallet in enumerate(cls.wallets):
             if wallet.username == username:
                 print(f'\n*********************Balance: {cls.wallets[idx].balance}*********************\n')
+
+    @staticmethod
+    def profile(username):
+        wallets = load_data(wallets_db_path, Wallet)
+        for idx, user in enumerate(wallets):
+            if user.username == username:
+                print(wallets[idx].to_dict())
 
 
 class TransactionFileRepository:
@@ -212,8 +196,7 @@ class TransactionFileRepository:
                 print(transaction.to_dict())
 
     @classmethod
-    def get_single_transaction_id_by_username(cls):
-        transaction_id = input('Enter transaction id: ')
+    def get_single_transaction_id_by_username(cls, transaction_id):
         for transaction in cls.transactions:
             if transaction.transaction_id == transaction_id:
                 print(transaction.to_dict())

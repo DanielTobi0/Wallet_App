@@ -4,15 +4,14 @@ from views import UserView, WalletView, TransactionView
 def get_path():
     return {
         "signup": UserView.signup,
-        "wallet": str,
+        "wallet": WalletView.wallet,
         "signin": UserView.signin,
         "signin_flow": UserView.signin_flow,
         "deposit": WalletView.deposit_,
         "withdraw": WalletView.withdraw_,
-        "balance": WalletView.check_balance,
+        "balance": WalletView.check_balance_,
         "profile": UserView.profile,
-        "delete": None,
-        "wallet_profile": WalletView.profile,
+        "wallet_profile": WalletView.profile_,
         "transaction": TransactionView.handle_get_transaction,
-        "single_transaction": TransactionView.handle_single_transaction,
+        "single_transaction": TransactionView.get_single_transaction_id_by_username_,
         }
