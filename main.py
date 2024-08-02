@@ -1,24 +1,38 @@
-from utils import users_db_path, transactions_db_path, wallets_db_path
-from urls import get_path
+from urls import get_paths
 
 
 class App:
     def __init__(self):
         self.app_active = None
 
-        self.user = {}
-        self.wallet = None
-        self.transaction = None
+        self.paths = get_paths()
 
-        self.users = []
-        self.wallets = []
-        self.transactions = []
+        self.actions = {
+            '1': self.signup,
+            '2': self.signin,
+            '12': self.exit_app
+        }
 
-        self.user_db_path = users_db_path
-        self.wallet_db_path = wallets_db_path
-        self.transactions_db_path = transactions_db_path
+    def signup(self):
+        self.paths['signup']()
 
-        self.paths = get_path()
+    def signin(self):
+        path_dict = get_paths()
+        success, name, wallet_id_ = self.paths['signin']()
+        path_dict['username'] = name
+        path_dict['wallet'] = wallet_id_
+
+        signin_app_active = True
+        state = {'signin_app_active': signin_app_active}
+        while success and state['signin_app_active']:
+            path_dict['signin_flow'](path_dict['username'], state)
+
+    def exit_app(self):
+        print('\nGoodbye!!')
+        self.app_active = False
+
+    def invalid_selection(self):
+        print('error 404')
 
     def run(self):
         self.app_active = True
@@ -41,29 +55,8 @@ class App:
                                    "11. Sign out \n"
                                    "12. Exit App \n"
                                    ))
-            if user_input == '1':
-                self.paths['signup']()
-
-            elif user_input == '2':
-                path_dict = get_path()
-                success, name, wallet_id_ = self.paths['signin']()
-                path_dict['username'] = name
-                path_dict['wallet'] = wallet_id_
-
-                signin_app_active = True
-                state = {'signin_app_active': signin_app_active}
-                while success and state['signin_app_active']:
-                    path_dict['signin_flow'](path_dict['username'], state)
-
-            elif user_input in ['3', '4', '5', '6', '7', '8', '9', '10', '11']:
-                print('You need to login first')
-
-            elif user_input == '12':
-                print('\nGoodbye!!')
-                self.app_active = False
-
-            else:
-                print('Invalid selection')
+            action = self.actions.get(user_input, self.invalid_selection)
+            action()
 
 
 app = App()

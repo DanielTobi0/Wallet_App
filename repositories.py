@@ -26,7 +26,7 @@ class UserFileRepository:
         WalletFileRepository.wallets.append(new_wallet)
         write_to_db(wallets_db_path, WalletFileRepository.wallets)
 
-        print(f'\n*********************{username} profile created*********************\n')
+        print(f'\n********************* {username} profile created *********************\n')
         return new_user.to_dict()
 
     @classmethod
@@ -38,7 +38,7 @@ class UserFileRepository:
         cls.wallets = [wallet for wallet in cls.wallets if wallet.username != username]
         write_to_db(users_db_path, cls.users)
         write_to_db(wallets_db_path, cls.wallets)
-        print(f'\n*********************{username} profile deleted from db.*********************\n')
+        print(f'\n********************* {username} profile deleted from db.*********************\n')
 
     @classmethod
     def get_user_by_username(cls, username):
@@ -168,7 +168,7 @@ class WalletFileRepository:
     def check_balance(cls, username):
         for idx, wallet in enumerate(cls.wallets):
             if wallet.username == username:
-                print(f'\n*********************Balance: {cls.wallets[idx].balance}*********************\n')
+                print(f'\n********************* Balance: {cls.wallets[idx].balance} *********************\n')
 
     @staticmethod
     def profile(username):

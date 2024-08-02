@@ -8,7 +8,7 @@
         "username": "ee"
     },
     {
-        "created_at": "2024-07-28T10:09:28.519042",
+        "created_at": "2024-08-02T20:17:21.153530",
         "email": "ww",
         "name": "ww",
         "password": "ww",
@@ -16,51 +16,11 @@
         "username": "ww"
     },
     {
-        "created_at": "2024-07-28T10:18:05.365134",
+        "created_at": "2024-08-02T20:18:20.488511",
         "email": "qq",
         "name": "qq",
         "password": "qq",
         "phone": "qq",
         "username": "qq"
-    },
-    {
-        "created_at": "2024-07-30T09:35:19.810529",
-        "email": "ee",
-        "name": "ee",
-        "password": "yy",
-        "phone": "ee",
-        "username": "yy"
-    },
-    {
-        "created_at": "2024-07-30T10:05:18.318840",
-        "email": "bb",
-        "name": "bb",
-        "password": "bb",
-        "phone": "bb",
-        "username": "bb"
-    },
-    {
-        "created_at": "2024-07-30T16:01:42.829772",
-        "email": "ii",
-        "name": "ii",
-        "password": "ii",
-        "phone": "ii",
-        "username": "ii"
-    },
-    {
-        "created_at": "2024-07-30T16:11:38.293807",
-        "email": "vv",
-        "name": "vv",
-        "password": "vv",
-        "phone": "vv",
-        "username": "vv"
-    },
-    {
-        "created_at": "2024-07-30T16:55:46.869809",
-        "email": "uu",
-        "name": "uu",
-        "password": "uu",
-        "phone": "uu",
-        "username": "uu"
     }
 ]
