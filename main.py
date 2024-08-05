@@ -25,7 +25,7 @@ class App:
         signin_app_active = True
         state = {'signin_app_active': signin_app_active}
         while success and state['signin_app_active']:
-            path_dict['signin_flow'](path_dict['username'], state)
+            path_dict['signin_flow'](path_dict['username'], state, path_dict['wallet']) # signin_flow(username, state, wallet_id)
 
     def exit_app(self):
         print('\nGoodbye!!')

@@ -1,3 +1,6 @@
 check.py
 __pycache__
 .idea
+qodana.yaml
+database.py
+.github

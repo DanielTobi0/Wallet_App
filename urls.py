@@ -1,4 +1,6 @@
-from views import UserView, WalletView, TransactionView
+from views.user_view import UserView
+from views.wallet_view import WalletView
+from views.transaction_view import TransactionView
 
 
 def get_paths():
@@ -10,7 +12,7 @@ def get_paths():
         "deposit": WalletView.deposit_,
         "withdraw": WalletView.withdraw_,
         "balance": WalletView.check_balance_,
-        "profile": UserView.profile,
+        "profile": UserView.profile_,
         "wallet_profile": WalletView.profile_,
         "transaction": TransactionView.handle_get_transaction,
         "single_transaction": TransactionView.get_single_transaction_id_by_username_,
