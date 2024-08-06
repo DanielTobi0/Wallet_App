@@ -11,21 +11,33 @@ class WalletFileRepository:
         conn = get_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         try:
-            cur.execute('SELECT balance FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
+            cur.execute(
+                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
+                (wallet_id_,)
+            )
             current_price = cur.fetchone()[0]
 
             amount = float(amount)
-            cur.execute('UPDATE wallet_db SET balance = %s WHERE wallet_id = %s', (amount + current_price, wallet_id_,))
+            cur.execute(
+                'UPDATE wallet_db SET balance = %s WHERE wallet_id = %s',
+                (amount + current_price, wallet_id_,)
+            )
             conn.commit()
 
-            cur.execute('SELECT balance FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
+            cur.execute(
+                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
+                (wallet_id_,)
+            )
             updated_price = cur.fetchone()[0]
 
             print(f'{amount} successfully deposited')
             print(f'Current balance: {updated_price}\n\n')
 
             # get username of wallet_id
-            cur.execute('SELECT username FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
+            cur.execute(
+                'SELECT username FROM wallet_db WHERE wallet_id = %s',
+                (wallet_id_,)
+            )
             result = cur.fetchone()
             conn.commit()
             return result['username']
@@ -49,7 +61,10 @@ class WalletFileRepository:
             print('Ogbon sodiki!')
             return
         try:
-            cur.execute('SELECT balance FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
+            cur.execute(
+                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
+                (wallet_id_,)
+            )
             result = cur.fetchone()
             if not result:
                 print(f'wallet id {wallet_id_} not found.')
@@ -62,13 +77,19 @@ class WalletFileRepository:
                 return
             else:
                 new_balance = current_price - float(amount)
-                cur.execute('UPDATE wallet_db SET balance = %s WHERE wallet_id = %s', (new_balance, wallet_id_,))
+                cur.execute(
+                    'UPDATE wallet_db SET balance = %s WHERE wallet_id = %s',
+                    (new_balance, wallet_id_,)
+                )
 
                 print(f'{amount} successfully withdraw')
                 print(f'Current balance: {new_balance}\n\n')
 
                 # get username of wallet_id
-                cur.execute('SELECT username FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
+                cur.execute(
+                    'SELECT username FROM wallet_db WHERE wallet_id = %s',
+                    (wallet_id_,)
+                )
                 result = cur.fetchone()
                 conn.commit()
                 return result['username']
@@ -94,14 +115,20 @@ class WalletFileRepository:
             return
 
         # check if receiver exist in the database
-        cur.execute('select exists (select wallet_id from wallet_db where username = %s)', (receiver,))
+        cur.execute(
+            'select exists (select wallet_id from wallet_db where username = %s)',
+            (receiver,)
+        )
         result = cur.fetchone()[0]
         if not result:
             print('User not found')
             return
 
-        # use the sender wallet_id to get username, for comparison
-        cur.execute('select username from wallet_db where wallet_id = %s', (wallet_id_,))
+        # use the sender wallet_id to get username, for comparison to receiver username
+        cur.execute(
+            'select username from wallet_db where wallet_id = %s',
+            (wallet_id_,)
+        )
         username = cur.fetchone()[0]
 
         if username == receiver:
@@ -110,7 +137,10 @@ class WalletFileRepository:
 
         try:
             # get sender balance
-            cur.execute('SELECT balance FROM wallet_db WHERE username = %s', (username,))
+            cur.execute(
+                'SELECT balance FROM wallet_db WHERE username = %s',
+                (username,)
+            )
             sender_balance = cur.fetchone()[0]
 
             if sender_balance < amount:
@@ -121,7 +151,10 @@ class WalletFileRepository:
             # debit sender
             amount = float(amount)
             new_balance = sender_balance - amount
-            cur.execute('UPDATE wallet_db SET balance = %s WHERE username = %s', (new_balance, username))
+            cur.execute(
+                'UPDATE wallet_db SET balance = %s WHERE username = %s',
+                (new_balance, username)
+            )
             conn.commit()
 
             # get receiver's balance
@@ -156,8 +189,7 @@ class WalletFileRepository:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         try:
-            query = "SELECT * FROM wallet_db WHERE wallet_id = %s"
-            cur.execute(query, (wallet_id_,))
+            cur.execute('SELECT * FROM wallet_db WHERE wallet_id = %s',  (wallet_id_,))
             user_row = cur.fetchone()
             if user_row:
                 for key, value in user_row.items():
@@ -184,7 +216,9 @@ class WalletFileRepository:
             cur.execute(create_script)
 
             insert_script = (
-                'INSERT INTO wallet_db (wallet_id, balance, username, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)')
+                'INSERT INTO wallet_db (wallet_id, balance, username, created_at, updated_at) '
+                'VALUES (%s, %s, %s, %s, %s)'
+            )
             values = (
                 wallet_db.wallet_id,
                 wallet_db.balance,
@@ -211,7 +245,10 @@ class WalletFileRepository:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         try:
-            cur.execute("SELECT * FROM wallet_db WHERE wallet_id = %s", (wallet_id_,))
+            cur.execute(
+                "SELECT * FROM wallet_db WHERE wallet_id = %s",
+                (wallet_id_,)
+            )
             user_row = cur.fetchone()
             if user_row:
                 for key, value in user_row.items():

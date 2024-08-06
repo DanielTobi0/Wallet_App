@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from models.transaction import Transaction
-from controllers.wallet_controller import WalletFileRepository
-from controllers.transaction_controller import TransactionFileRepository
+from repositories.wallet_repo import WalletFileRepository
+from repositories.transaction_repo import TransactionFileRepository
 
 
 class WalletView:

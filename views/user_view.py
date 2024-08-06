@@ -5,8 +5,8 @@ from models.user import User
 from models.wallet import Wallet
 from views.transaction_view import TransactionView
 from views.wallet_view import WalletView
-from controllers.user_controller import UserFileRepository
-from controllers.wallet_controller import WalletFileRepository
+from repositories.user_repo import UserFileRepository
+from repositories.wallet_repo import WalletFileRepository
 
 
 class UserView:

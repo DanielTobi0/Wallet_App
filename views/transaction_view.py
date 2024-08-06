@@ -1,4 +1,4 @@
-from controllers.transaction_controller import TransactionFileRepository
+from repositories.transaction_repo import TransactionFileRepository
 
 
 class TransactionView:
