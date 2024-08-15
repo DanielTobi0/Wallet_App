@@ -2,41 +2,34 @@ import psycopg2
 import psycopg2.extras
 from helpers.helpers import get_connection
 from models.wallet import Wallet
+from repositories.user_repo import UserFileRepository
 
 
 class WalletFileRepository:
 
     @classmethod
-    def deposit(cls, wallet_id_, amount: float):
+    def get_wallet_id_by_username(cls, username):
         conn = get_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         try:
             cur.execute(
-                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
-                (wallet_id_,)
+                '''SELECT wallet_id FROM wallet_db WHERE username = %s''',
+                (username,)
             )
-            current_price = cur.fetchone()[0]
+            return cur.fetchone()[0]
 
-            amount = float(amount)
-            cur.execute(
-                'UPDATE wallet_db SET balance = %s WHERE wallet_id = %s',
-                (amount + current_price, wallet_id_,)
-            )
-            conn.commit()
+        finally:
+            cur.close()
+            conn.close()
 
-            cur.execute(
-                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
-                (wallet_id_,)
-            )
-            updated_price = cur.fetchone()[0]
-
-            print(f'{amount} successfully deposited')
-            print(f'Current balance: {updated_price}\n\n')
-
-            # get username of wallet_id
+    @classmethod
+    def get_username_by_wallet_id(cls, wallet_id):
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        try:
             cur.execute(
                 'SELECT username FROM wallet_db WHERE wallet_id = %s',
-                (wallet_id_,)
+                (wallet_id,)
             )
             result = cur.fetchone()
             conn.commit()
@@ -50,10 +43,46 @@ class WalletFileRepository:
             conn.close()
 
     @classmethod
-    def withdrawal(cls, wallet_id_: str, amount: float):
+    def get_balance(cls, wallet_id):
         conn = get_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
+        cur.execute(
+            'SELECT balance FROM wallet_db WHERE wallet_id = %s',
+            (wallet_id,)
+        )
+        return float(cur.fetchone()[0])
+
+    @classmethod
+    def update_balance(cls, amount, wallet_id):
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cur.execute(
+            'UPDATE wallet_db SET balance = %s WHERE wallet_id = %s',
+            (amount, wallet_id,)
+        )
+        conn.commit()
+
+    @classmethod
+    def deposit(cls, wallet_id_, amount: float):
+        try:
+            current_balance = cls.get_balance(wallet_id_)
+            amount = float(amount)
+            new_balance = current_balance + amount
+            cls.update_balance(amount=new_balance, wallet_id=wallet_id_)
+            updated_price = cls.get_balance(wallet_id=wallet_id_)  # current price after deposit
+
+            print(f'{amount} successfully deposited')
+            print(f'Current balance: {updated_price}\n\n')
+
+            return cls.get_username_by_wallet_id(wallet_id_)
+
+        except Exception as e:
+            print(f'error: {e}')
+
+    @classmethod
+    def withdrawal(cls, wallet_id_: str, amount: float):
         if not isinstance(amount, (float, int)):
             print('amount should be numerical not text')
             return
@@ -61,50 +90,28 @@ class WalletFileRepository:
             print('Ogbon sodiki!')
             return
         try:
-            cur.execute(
-                'SELECT balance FROM wallet_db WHERE wallet_id = %s',
-                (wallet_id_,)
-            )
-            result = cur.fetchone()
-            if not result:
+            # get balance
+            current_price = cls.get_balance(wallet_id=wallet_id_)
+            if not current_price:
                 print(f'wallet id {wallet_id_} not found.')
                 return
-
-            current_price = result['balance']
 
             if current_price < amount:
                 print(f'\n******Your account balance is too low. {current_price}******\n')
                 return
             else:
                 new_balance = current_price - float(amount)
-                cur.execute(
-                    'UPDATE wallet_db SET balance = %s WHERE wallet_id = %s',
-                    (new_balance, wallet_id_,)
-                )
-
+                cls.update_balance(new_balance, wallet_id_)
                 print(f'{amount} successfully withdraw')
                 print(f'Current balance: {new_balance}\n\n')
 
-                # get username of wallet_id
-                cur.execute(
-                    'SELECT username FROM wallet_db WHERE wallet_id = %s',
-                    (wallet_id_,)
-                )
-                result = cur.fetchone()
-                conn.commit()
-                return result['username']
+                return cls.get_username_by_wallet_id(wallet_id_)
 
         except Exception as e:
             print(f'An error occurred: {e}')
-        finally:
-            cur.close()
-            conn.close()
 
     @classmethod
     def send_money(cls, wallet_id_: str, amount: float, receiver: str):
-        conn = get_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
         # check is amount is not text or less than 0
         if not isinstance(amount, (float, int)):
             print('amount should be numerical not text')
@@ -114,35 +121,22 @@ class WalletFileRepository:
             print('Amount should be greater than zero!')
             return
 
-        # check if receiver exist in the database
-        cur.execute(
-            'select exists (select wallet_id from wallet_db where username = %s)',
-            (receiver,)
-        )
-        result = cur.fetchone()[0]
-        if not result:
+        # is this okay :) ?
+        # check if receiver is valid
+        result = UserFileRepository.check_user_existence_by_username(receiver)
+        if not isinstance(result, bool):
             print('User not found')
             return
 
         # use the sender wallet_id to get username, for comparison to receiver username
-        cur.execute(
-            'select username from wallet_db where wallet_id = %s',
-            (wallet_id_,)
-        )
-        username = cur.fetchone()[0]
-
-        if username == receiver:
+        sender_username = cls.get_username_by_wallet_id(wallet_id_)
+        if sender_username == receiver:
             print('You can not send money to yourself')
             return
 
         try:
             # get sender balance
-            cur.execute(
-                'SELECT balance FROM wallet_db WHERE username = %s',
-                (username,)
-            )
-            sender_balance = cur.fetchone()[0]
-
+            sender_balance = cls.get_balance(wallet_id_)
             if sender_balance < amount:
                 print(
                     f'\n****** Your account balance is too low to make this transfer.******\n****** Current balance: {sender_balance} ******\n')
@@ -151,53 +145,30 @@ class WalletFileRepository:
             # debit sender
             amount = float(amount)
             new_balance = sender_balance - amount
-            cur.execute(
-                'UPDATE wallet_db SET balance = %s WHERE username = %s',
-                (new_balance, username)
-            )
-            conn.commit()
+            cls.update_balance(new_balance, wallet_id_)
 
-            # get receiver's balance
-            cur.execute('SELECT balance FROM wallet_db WHERE username = %s', (receiver,))
-            result = cur.fetchone()
-            receiver_balance = result['balance']
+            # get receiver's wallet_id and balance
+            receiver_wallet_id = cls.get_wallet_id_by_username(receiver)
+            receiver_balance = cls.get_balance(receiver_wallet_id)
 
             # credit receiver
-            cur.execute('UPDATE wallet_db SET balance = %s WHERE username = %s',
-                        (receiver_balance + amount, receiver,))
+            update_receiver_balance = receiver_balance + amount
+            cls.update_balance(update_receiver_balance, receiver_wallet_id)
 
-            # get username of wallet_id
-            cur.execute('SELECT username FROM wallet_db WHERE wallet_id = %s', (wallet_id_,))
-            result = cur.fetchone()
-            conn.commit()
+            # get username of sender by wallet_id
+            result = cls.get_username_by_wallet_id(wallet_id_)
 
-            print(f'You sent {amount} to {receiver}\n\n')
-            # print('Transaction completed successfully')
-            return result['username']
+            print(f'You sent {amount} to {receiver}\nCurrent balance: {cls.get_balance(wallet_id_)}\n')
+            print('Transaction completed successfully')
+            return result
 
         except Exception as e:
-            conn.rollback()
             print(f'an error occurred: {e}')
-
-        finally:
-            cur.close()
-            conn.close()
 
     @classmethod
     def check_balance(cls, wallet_id_):
-        conn = get_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-        try:
-            cur.execute('SELECT * FROM wallet_db WHERE wallet_id = %s',  (wallet_id_,))
-            user_row = cur.fetchone()
-            if user_row:
-                for key, value in user_row.items():
-                    if key == 'balance':
-                        print(f'{key}: {value}\n\n')
-        finally:
-            cur.close()
-            conn.close()
+        balance = cls.get_balance(wallet_id_)
+        print(f'Balance: {balance}')
 
     @classmethod
     def create_wallet(cls, wallet_db: Wallet):
@@ -246,7 +217,7 @@ class WalletFileRepository:
 
         try:
             cur.execute(
-                "SELECT * FROM wallet_db WHERE wallet_id = %s",
+                "SELECT * FROM wallet_db WHERE wallet_id = %s LIMIT 1",
                 (wallet_id_,)
             )
             user_row = cur.fetchone()
